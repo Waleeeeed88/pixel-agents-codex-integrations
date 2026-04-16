@@ -1,6 +1,6 @@
 <h1 align="center">
-    <a href="https://github.com/pablodelucca/pixel-agents/discussions">
-        <img src="webview-ui/public/banner.png" alt="Pixel Agents">
+    <a href="https://github.com/Waleeeeed88/pixel-agents-codex-integrations">
+        <img src="webview-ui/public/banner.png" alt="CodexEconPixel">
     </a>
 </h1>
 
@@ -10,28 +10,27 @@
 
 <div align="center" style="margin-top: 25px;">
 
-[![version](https://img.shields.io/endpoint?url=https%3A%2F%2Fgist.githubusercontent.com%2Fpablodelucca%2F3cd28398fa4a2c0a636e1d51d41aee39%2Fraw%2Fversion.json)](https://github.com/pablodelucca/pixel-agents/releases)
-[![marketplaces](https://img.shields.io/endpoint?url=https%3A%2F%2Fgist.githubusercontent.com%2Fpablodelucca%2F3cd28398fa4a2c0a636e1d51d41aee39%2Fraw%2Finstalls.json)](https://marketplace.visualstudio.com/items?itemName=pablodelucca.pixel-agents)
-[![stars](https://img.shields.io/github/stars/pablodelucca/pixel-agents?logo=github&color=0183ff&style=flat)](https://github.com/pablodelucca/pixel-agents/stargazers)
-[![license](https://img.shields.io/github/license/pablodelucca/pixel-agents?color=0183ff&style=flat)](https://github.com/pablodelucca/pixel-agents/blob/main/LICENSE)
-[![good first issues](https://img.shields.io/github/issues/pablodelucca/pixel-agents/good%20first%20issue?color=7057ff&label=good%20first%20issues)](https://github.com/pablodelucca/pixel-agents/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22)
+[![release](https://img.shields.io/github/v/release/Waleeeeed88/pixel-agents-codex-integrations?display_name=tag&color=0183ff&style=flat)](https://github.com/Waleeeeed88/pixel-agents-codex-integrations/releases)
+[![stars](https://img.shields.io/github/stars/Waleeeeed88/pixel-agents-codex-integrations?logo=github&color=0183ff&style=flat)](https://github.com/Waleeeeed88/pixel-agents-codex-integrations/stargazers)
+[![license](https://img.shields.io/github/license/Waleeeeed88/pixel-agents-codex-integrations?color=0183ff&style=flat)](https://github.com/Waleeeeed88/pixel-agents-codex-integrations/blob/main/LICENSE)
+[![upstream](https://img.shields.io/badge/upstream-pablodelucca%2Fpixel--agents-7057ff?style=flat)](https://github.com/pablodelucca/pixel-agents)
 
 </div>
 
 <div align="center">
-<a href="https://marketplace.visualstudio.com/items?itemName=pablodelucca.pixel-agents">🛒 VS Code Marketplace</a> • <a href="https://github.com/pablodelucca/pixel-agents/discussions">💬 Discussions</a> • <a href="https://github.com/pablodelucca/pixel-agents/issues">🐛 Issues</a> • <a href="CONTRIBUTING.md">🤝 Contributing</a> • <a href="CHANGELOG.md">📋 Changelog</a>
+<a href="https://github.com/Waleeeeed88/pixel-agents-codex-integrations/releases">📦 Releases</a> • <a href="https://github.com/Waleeeeed88/pixel-agents-codex-integrations/issues">🐛 Issues</a> • <a href="https://github.com/Waleeeeed88/pixel-agents-codex-integrations/discussions">💬 Discussions</a> • <a href="CONTRIBUTING.md">🤝 Contributing</a> • <a href="CHANGELOG.md">📋 Changelog</a>
 </div>
 
 <br/>
 
-> This repository is a personal fork of [pablodelucca/pixel-agents](https://github.com/pablodelucca/pixel-agents).
+> `CodexEconPixel` is a personal fork of [pablodelucca/pixel-agents](https://github.com/pablodelucca/pixel-agents).
 > It keeps the original MIT license and builds on the upstream project with a Codex-first workflow, Graphify repo memory, and fork-specific integrations.
 
-Pixel Agents turns multi-agent AI systems into something you can actually see and manage. Each agent becomes a character in a pixel art office. They walk around, sit at their desk, and visually reflect what they are doing — typing when writing code, reading when searching files, waiting when it needs your attention.
+CodexEconPixel turns multi-agent AI systems into something you can actually see and manage. Each agent becomes a character in a pixel art office. They walk around, sit at their desk, and visually reflect what they are doing — typing when writing code, reading when searching files, waiting when it needs your attention.
 
 Right now the default runtime is Codex inside VS Code, with legacy Claude compatibility still present in the codebase. The long-term vision is a fully agent-agnostic, platform-agnostic interface for orchestrating any AI agents, deployable anywhere.
 
-This is the source code for the free Pixel Agents extension for VS Code — install from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=pablodelucca.pixel-agents) or [Open VSX](https://open-vsx.org/extension/pablodelucca/pixel-agents) with the full furniture catalog included.
+This repository packages the `CodexEconPixel` VS Code extension. GitHub Releases are the current source of truth for VSIX builds in this fork. Marketplace publishing is wired in the repo and becomes one-click once `VSCE_PAT` and `OPEN_VSX_TOKEN` are configured in GitHub Actions.
 
 ![Pixel Agents screenshot](webview-ui/public/Screenshot.jpg)
 
@@ -40,13 +39,14 @@ This is the source code for the free Pixel Agents extension for VS Code — inst
 - Original project: [pablodelucca/pixel-agents](https://github.com/pablodelucca/pixel-agents)
 - Fork repository: [Waleeeeed88/pixel-agents-codex-integrations](https://github.com/Waleeeeed88/pixel-agents-codex-integrations)
 - Compare this fork against upstream: [main...Waleeeeed88:main](https://github.com/pablodelucca/pixel-agents/compare/main...Waleeeeed88:pixel-agents-codex-integrations:main)
+- Extension identity: `waleeeeed88.codexeconpixel`
 
 This fork is where the Codex-first and Graphify-oriented work lives. The main changes in this fork are:
 
 - Codex as the default agent runtime instead of Claude-first launch behavior
 - Graphify as the primary repo memory layer, with Serena treated as fallback context
 - Graph panel, graph refresh flow, and Codex transcript/session support across the extension
-- Fork-specific integration work and presentation intended to make this repo easier to demo as your own implementation
+- Fork-specific integration work, CI hardening, and release preparation intended to make this repo easier to ship and maintain as your own implementation
 
 ## Features
 
@@ -73,32 +73,40 @@ This fork is where the Codex-first and Graphify-oriented work lives. The main ch
 
 ## Getting Started
 
-If you just want to use Pixel Agents, the easiest way is to download the [VS Code extension](https://marketplace.visualstudio.com/items?itemName=pablodelucca.pixel-agents). If you want to play with the code, develop, or contribute, then:
+If you want to use this fork today, install the VSIX from [GitHub Releases](https://github.com/Waleeeeed88/pixel-agents-codex-integrations/releases). If you want to play with the code, develop, or contribute, then:
 
 ### Install from source
 
 ```bash
 git clone https://github.com/Waleeeeed88/pixel-agents-codex-integrations.git
 cd pixel-agents-codex-integrations
-npm install
-cd webview-ui && npm install && cd ..
+npm run setup
 npm run build
 ```
 
 Then press **F5** in VS Code to launch the Extension Development Host.
 
+### Developer Workflow
+
+The fork is set up to be low-friction for contributors:
+
+- `npm run setup` installs the root, webview, and server dependencies in one command
+- `npm run validate` runs the same core checks used before release
+- `npm run release:check` runs the full local release gate
+- `npm run package:vsix` creates a VSIX locally in `dist-vsix/`
+
 ### Usage
 
-1. Open the **Pixel Agents** panel (it appears in the bottom panel area alongside your terminal)
+1. Open the **CodexEconPixel** panel (it appears in the bottom panel area alongside your terminal)
 2. Click **+ Agent** to spawn a new Codex terminal and its character. Right-click for the option to launch with `--dangerously-skip-permissions` (bypasses all tool approval prompts)
-3. Start coding with Claude — watch the character react in real time
+3. Start coding with Codex — watch the character react in real time
 4. Click a character to select it, then click a seat to reassign it
 5. Click **Layout** to open the office editor and customize your space
 6. Click **Graph** to build or open the repo’s Graphify map and reuse its graph/report for parallel agent context
 
 ## Graphify Workflow
 
-Pixel Agents can open a Graphify workspace map beside the main panel. On extension startup, Pixel Agents performs a silent local Graphify code refresh for each open workspace and rebuilds the native graph HTML plus a compact agent knowledge base. After that, the extension keeps watching agent activity and quietly refreshes the graph again after meaningful coding sessions or quiet intervals, with the graph panel popping open when a strong session completes. The panel looks for `graphify-out/graph.html`, `graphify-out/graph.json`, `graphify-out/GRAPH_REPORT.md`, and `graphify-out/AGENT_KNOWLEDGE_BASE.md` in the workspace root. If they are missing or stale, **Graph** triggers a refresh and then opens a dedicated preview panel with the interactive visualization.
+CodexEconPixel can open a Graphify workspace map beside the main panel. On extension startup, the extension performs a silent local Graphify code refresh for each open workspace and rebuilds the native graph HTML plus a compact agent knowledge base. After that, the extension keeps watching agent activity and quietly refreshes the graph again after meaningful coding sessions or quiet intervals, with the graph panel popping open when a strong session completes. The panel looks for `graphify-out/graph.html`, `graphify-out/graph.json`, `graphify-out/GRAPH_REPORT.md`, and `graphify-out/AGENT_KNOWLEDGE_BASE.md` in the workspace root. If they are missing or stale, **Graph** triggers a refresh and then opens a dedicated preview panel with the interactive visualization.
 
 Use this to keep a persistent subsystem map around for parallel agents:
 
@@ -112,7 +120,7 @@ The knowledge base also indexes local Serena project data when present:
 - `.serena/project.yml` — project configuration
 - `.serena/memories/*` — persistent project memories
 
-Serena is treated as a fallback memory layer. Pixel Agents does not need to reopen it every time; the default retrieval path is the Graphify knowledge base, report, and graph first.
+Serena is treated as a fallback memory layer. CodexEconPixel does not need to reopen it every time; the default retrieval path is the Graphify knowledge base, report, and graph first.
 
 If Graphify is not installed yet, install `graphifyy` in your Python environment first.
 For richer doc/paper/image extraction beyond the built-in startup code graph refresh, run `/graphify --update` inside your AI assistant.
@@ -145,7 +153,7 @@ Characters are based on the amazing work of [JIK-A-4, Metro City](https://jik-a-
 
 ## How It Works
 
-Pixel Agents watches Claude Code's JSONL transcript files to track what each agent is doing. When an agent uses a tool (like writing a file or running a command), the extension detects it and updates the character's animation accordingly. No modifications to Claude Code are needed — it's purely observational.
+CodexEconPixel watches Codex session transcripts and the legacy Claude compatibility path to track what each agent is doing. When an agent uses a tool (like writing a file or running a command), the extension detects it and updates the character's animation accordingly.
 
 The webview runs a lightweight game loop with canvas rendering, BFS pathfinding, and a character state machine (idle → walk → type/read). Everything is pixel-perfect at integer zoom levels.
 
@@ -164,7 +172,7 @@ The webview runs a lightweight game loop with canvas rendering, BFS pathfinding,
 
 If your agent appears stuck on idle or doesn't spawn:
 
-1. **Debug View** — In the Pixel Agents panel, click the gear icon (Settings), then toggle **Debug View**. This shows connection diagnostics per agent: JSONL file status, lines parsed, last data timestamp, and file path. If you see "JSONL not found", the extension can't locate the session file.
+1. **Debug View** — In the CodexEconPixel panel, click the gear icon (Settings), then toggle **Debug View**. This shows connection diagnostics per agent: JSONL file status, lines parsed, last data timestamp, and file path. If you see "JSONL not found", the extension can't locate the session file.
 2. **Debug Console** — If you're running from source (Extension Development Host via F5), open VS Code's **View > Debug Console**. Search for `[Pixel Agents]` to see detailed logs: project directory resolution, JSONL polling status, path encoding mismatches, and unrecognized JSONL record types.
 
 ## Where This Is Going
@@ -184,11 +192,11 @@ For this to work, the architecture needs to be modular at every level:
 - **Agent-agnostic**: Codex by default today, while the architecture is being shaped to support Claude, OpenCode, Gemini, Cursor, Copilot, and others through composable adapters.
 - **Theme-agnostic**: community-created assets, skins, and themes from any contributor.
 
-We're actively working on the core module and adapter architecture that makes this possible. If you're interested to talk about this further, please visit our [Discussions Section](https://github.com/pablodelucca/pixel-agents/discussions).
+We're actively working on the core module and adapter architecture that makes this possible. If you're interested to talk about this further, please visit this fork's [Discussions Section](https://github.com/Waleeeeed88/pixel-agents-codex-integrations/discussions).
 
 ## Community & Contributing
 
-Use **[Issues](https://github.com/pablodelucca/pixel-agents/issues)** to report bugs or request features. Join **[Discussions](https://github.com/pablodelucca/pixel-agents/discussions)** for questions and conversations.
+Use **[Issues](https://github.com/Waleeeeed88/pixel-agents-codex-integrations/issues)** to report bugs or request features. Join **[Discussions](https://github.com/Waleeeeed88/pixel-agents-codex-integrations/discussions)** for questions and conversations.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for instructions on how to contribute.
 

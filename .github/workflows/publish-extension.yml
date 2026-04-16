@@ -8,7 +8,7 @@ on:
       dry_run:
         description: 'Package without publishing'
         type: boolean
-        default: false
+        default: true
 
 concurrency:
   group: publish-extension
@@ -17,9 +17,10 @@ concurrency:
 jobs:
   publish:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     permissions:
       contents: write
+
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -34,40 +35,73 @@ jobs:
             webview-ui/package-lock.json
             server/package-lock.json
 
-      - name: Install dependencies
+      - name: Setup npm
+        run: npm install -g npm@10.9.2
+
+      - name: Read Extension Metadata
+        id: meta
+        run: |
+          echo "name=$(node -p "require('./package.json').name")" >> "$GITHUB_OUTPUT"
+          echo "publisher=$(node -p "require('./package.json').publisher")" >> "$GITHUB_OUTPUT"
+          echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+          echo "vsix_path=dist-vsix/$(node -p "require('./package.json').name").vsix" >> "$GITHUB_OUTPUT"
+
+      - name: Install Root Dependencies
         run: npm ci
 
-      - name: Install webview dependencies
-        run: npm ci
+      - name: Install Webview Dependencies
         working-directory: webview-ui
-
-      - name: Install server dependencies
         run: npm ci
-        working-directory: server
 
-      - name: Check types and lint
-        run: npm run check-types && npm run lint
+      - name: Install Server Dependencies
+        working-directory: server
+        run: npm ci
+
+      - name: Run Release Gate
+        run: npm run release:check
+
+      - name: Package VSIX
+        run: |
+          mkdir -p dist-vsix
+          npm run package:vsix
+
+      - name: Upload VSIX Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: codexeconpixel-vsix
+          path: ${{ steps.meta.outputs.vsix_path }}
 
       - name: Publish to VS Code Marketplace
-        id: publish-vscode
+        id: publish_vscode
+        if: ${{ (github.event_name == 'release' || !inputs.dry_run) && secrets.VSCE_PAT != '' }}
         uses: HaaLeo/publish-vscode-extension@v2
         with:
           pat: ${{ secrets.VSCE_PAT }}
           registryUrl: https://marketplace.visualstudio.com
+          extensionFile: ${{ steps.meta.outputs.vsix_path }}
           skipDuplicate: true
-          dryRun: ${{ inputs.dry_run == 'true' }}
 
       - name: Publish to Open VSX
+        if: ${{ (github.event_name == 'release' || !inputs.dry_run) && secrets.OPEN_VSX_TOKEN != '' }}
         uses: HaaLeo/publish-vscode-extension@v2
         with:
           pat: ${{ secrets.OPEN_VSX_TOKEN }}
           registryUrl: https://open-vsx.org
-          extensionFile: ${{ steps.publish-vscode.outputs.vsixPath }}
+          extensionFile: ${{ steps.meta.outputs.vsix_path }}
           skipDuplicate: true
-          dryRun: ${{ inputs.dry_run == 'true' }}
+
+      - name: Explain Skipped Marketplace Publish
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
+        run: echo "Dry run enabled: VSIX packaged and uploaded, marketplace publish skipped."
+
+      - name: Explain Missing Publish Secrets
+        if: ${{ (github.event_name == 'release' || !inputs.dry_run) && (secrets.VSCE_PAT == '' || secrets.OPEN_VSX_TOKEN == '') }}
+        run: |
+          echo "Marketplace publish skipped because one or more required secrets are missing."
+          echo "Expected secrets: VSCE_PAT and OPEN_VSX_TOKEN."
 
       - name: Upload VSIX to Release
         if: github.event_name == 'release'
         uses: softprops/action-gh-release@v2
         with:
-          files: ${{ steps.publish-vscode.outputs.vsixPath }}
+          files: ${{ steps.meta.outputs.vsix_path }}

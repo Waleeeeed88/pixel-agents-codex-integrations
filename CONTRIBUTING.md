@@ -1,6 +1,6 @@
-# Contributing to Pixel Agents
+# Contributing to CodexEconPixel
 
-Thanks for your interest in contributing to Pixel Agents! All contributions are welcome — features, bug fixes, documentation improvements, refactors, and more.
+Thanks for your interest in contributing to CodexEconPixel. This repository is a fork of `pablodelucca/pixel-agents`, and contributions here focus on the Codex-first, Graphify-oriented variant of the project. All contributions are welcome — features, bug fixes, documentation improvements, refactors, and more.
 
 This project is licensed under the [MIT License](LICENSE), so your contributions will be too. No CLA or DCO is required.
 
@@ -8,17 +8,17 @@ This project is licensed under the [MIT License](LICENSE), so your contributions
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) (v22 recommended)
+- [Node.js](https://nodejs.org/) 22
+- npm 10.9.2
 - [VS Code](https://code.visualstudio.com/) (v1.105.0 or later)
+- Optional but recommended: [Volta](https://volta.sh/) for automatic Node/npm pinning from `package.json`
 
 ### Setup
 
 ```bash
-git clone https://github.com/pablodelucca/pixel-agents.git
-cd pixel-agents
-npm install
-cd webview-ui && npm install && cd ..
-cd server && npm install && cd ..
+git clone https://github.com/Waleeeeed88/pixel-agents-codex-integrations.git
+cd pixel-agents-codex-integrations
+npm run setup
 npm run build
 ```
 
@@ -161,9 +161,9 @@ Each test runs with an isolated `HOME` and `--user-data-dir`, so no test state l
 2. Make your changes
 3. Verify everything passes locally:
    ```bash
-   npm run lint                         # Extension + server + webview lint
-   npm run build                        # Type check + esbuild + Vite
-   npm test                             # Unit + integration tests
+   npm run validate                     # Type check + lint + format + tests
+   npm run build                        # Compile extension + webview bundle
+   npm run package:vsix                 # Optional: build the release artifact
    ```
    CI runs these same checks automatically on every PR.
 4. Open a pull request against `main` with:
@@ -176,11 +176,11 @@ Each test runs with an isolated `HOME` and `--user-data-dir`, so no test state l
 
 ## Reporting Bugs
 
-[Open a bug report](https://github.com/pablodelucca/pixel-agents/issues/new?template=bug_report.yml) — the form will guide you through providing the details we need.
+[Open a bug report](https://github.com/Waleeeeed88/pixel-agents-codex-integrations/issues/new?template=bug_report.yml) — the form will guide you through providing the details we need.
 
 ## Feature Requests
 
-Have an idea? [Open a feature request](https://github.com/pablodelucca/pixel-agents/issues/new?template=feature_request.yml) — the form will guide you through describing the problem and your proposed solution. You can also browse and join ongoing conversations in [Discussions](https://github.com/pablodelucca/pixel-agents/discussions).
+Have an idea? [Open a feature request](https://github.com/Waleeeeed88/pixel-agents-codex-integrations/issues/new?template=feature_request.yml) — the form will guide you through describing the problem and your proposed solution. You can also browse and join ongoing conversations in [Discussions](https://github.com/Waleeeeed88/pixel-agents-codex-integrations/discussions).
 
 ## Security Issues
 

@@ -1,4 +1,4 @@
-# CI workflow for pixel-agents
+# CI workflow for CodexEconPixel
 
 name: CI
 
@@ -46,6 +46,10 @@ jobs:
             webview-ui/package-lock.json
             server/package-lock.json
 
+      - name: Setup npm
+        id: setup_npm
+        run: npm install -g npm@10.9.2
+
       - name: Install Root Dependencies
         id: install_root
         run: npm ci
@@ -59,8 +63,6 @@ jobs:
         id: install_server
         working-directory: server
         run: npm ci
-
-      # --- Quality Checks (blocking) ---
 
       - name: Type Check
         id: type_check
@@ -93,8 +95,6 @@ jobs:
         run: npm run knip
         continue-on-error: true
 
-      # --- Build (blocking) ---
-
       - name: Build
         id: build
         if: always() && steps.install_root.outcome == 'success' && steps.install_webview.outcome == 'success'
@@ -103,16 +103,12 @@ jobs:
           cd webview-ui && npm run build
         continue-on-error: true
 
-      # --- Server Tests (require build for hook script) ---
-
       - name: Server Tests
         id: server_test
         if: always() && steps.build.outcome == 'success' && steps.install_server.outcome == 'success'
         working-directory: server
         run: npm test
         continue-on-error: true
-
-      # --- Audit Checks (blocking) ---
 
       - name: Audit Root Dependencies
         id: audit_root
@@ -134,13 +130,12 @@ jobs:
         run: npm audit --audit-level=moderate
         continue-on-error: true
 
-      # --- Summary ---
-
       - name: Write Step Summary
         if: always()
         env:
           CHECKOUT: ${{ steps.checkout.outcome }}
           SETUP_NODE: ${{ steps.setup_node.outcome }}
+          SETUP_NPM: ${{ steps.setup_npm.outcome }}
           INSTALL_ROOT: ${{ steps.install_root.outcome }}
           INSTALL_WEBVIEW: ${{ steps.install_webview.outcome }}
           TYPE_CHECK: ${{ steps.type_check.outcome }}
@@ -155,10 +150,18 @@ jobs:
           KNIP: ${{ steps.knip.outcome }}
         run: |
           status() {
-            if [ "$1" = "success" ]; then echo "✅ PASS"; else echo "❌ FAIL"; fi
+            case "$1" in
+              success) echo "PASS" ;;
+              skipped) echo "SKIP" ;;
+              *) echo "FAIL" ;;
+            esac
           }
           advisory() {
-            if [ "$1" = "success" ]; then echo "✅ PASS"; else echo "⚠️ WARN"; fi
+            case "$1" in
+              success) echo "PASS" ;;
+              skipped) echo "SKIP" ;;
+              *) echo "WARN" ;;
+            esac
           }
           {
             echo "## CI Results"
@@ -167,6 +170,7 @@ jobs:
             echo "| --- | --- |"
             echo "| Checkout | $(status "$CHECKOUT") |"
             echo "| Setup Node | $(status "$SETUP_NODE") |"
+            echo "| Setup npm | $(status "$SETUP_NPM") |"
             echo "| Install root deps | $(status "$INSTALL_ROOT") |"
             echo "| Install webview deps | $(status "$INSTALL_WEBVIEW") |"
             echo "| **Type check** | $(status "$TYPE_CHECK") |"
@@ -181,13 +185,12 @@ jobs:
             echo "| Knip _(advisory)_ | $(advisory "$KNIP") |"
           } >> "$GITHUB_STEP_SUMMARY"
 
-      # --- Final Gate ---
-
       - name: Fail If Any Blocking Check Failed
         if: always()
         env:
           CHECKOUT: ${{ steps.checkout.outcome }}
           SETUP_NODE: ${{ steps.setup_node.outcome }}
+          SETUP_NPM: ${{ steps.setup_npm.outcome }}
           INSTALL_ROOT: ${{ steps.install_root.outcome }}
           INSTALL_WEBVIEW: ${{ steps.install_webview.outcome }}
           TYPE_CHECK: ${{ steps.type_check.outcome }}
@@ -198,11 +201,10 @@ jobs:
           SERVER_TEST: ${{ steps.server_test.outcome }}
         run: |
           failed=0
-          for step in CHECKOUT SETUP_NODE INSTALL_ROOT INSTALL_WEBVIEW \
-                      TYPE_CHECK LINT \
-                      WEBVIEW_TEST FORMAT_CHECK BUILD SERVER_TEST; do
+          for step in CHECKOUT SETUP_NODE SETUP_NPM INSTALL_ROOT INSTALL_WEBVIEW \
+                      TYPE_CHECK LINT WEBVIEW_TEST FORMAT_CHECK BUILD SERVER_TEST; do
             val=$(printenv "$step" 2>/dev/null || echo "skipped")
-            if [ "$val" != "success" ]; then
+            if [ "$val" = "failure" ] || [ "$val" = "cancelled" ] || [ "$val" = "timed_out" ] || [ "$val" = "action_required" ]; then
               echo "::error::$step failed"
               failed=1
             fi
@@ -235,6 +237,9 @@ jobs:
             package-lock.json
             webview-ui/package-lock.json
             server/package-lock.json
+
+      - name: Setup npm
+        run: npm install -g npm@10.9.2
 
       - name: Restore VS Code Cache
         id: cache_vscode_restore
@@ -302,7 +307,11 @@ jobs:
           E2E_TEST: ${{ steps.e2e_test.outcome }}
         run: |
           status() {
-            if [ "$1" = "success" ]; then echo "✅ PASS"; else echo "❌ FAIL"; fi
+            case "$1" in
+              success) echo "PASS" ;;
+              skipped) echo "SKIP" ;;
+              *) echo "FAIL" ;;
+            esac
           }
           {
             echo "## E2E Results ($OS)"
