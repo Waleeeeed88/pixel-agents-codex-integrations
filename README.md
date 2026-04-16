@@ -46,6 +46,7 @@ This fork is where the Codex-first and Graphify-oriented work lives. The main ch
 - Codex as the default agent runtime instead of Claude-first launch behavior
 - Graphify as the primary repo memory layer, with Serena treated as fallback context
 - Graph panel, graph refresh flow, and Codex transcript/session support across the extension
+- Extension-started Codex sessions now bootstrap Serena and start with a Graphify-first session prompt by default
 - Fork-specific integration work, CI hardening, and release preparation intended to make this repo easier to ship and maintain as your own implementation
 
 ## Features
@@ -101,10 +102,13 @@ Maintainers can use [docs/releasing.md](docs/releasing.md) for the release flow,
 
 1. Open the **CodexEconPixel** panel (it appears in the bottom panel area alongside your terminal)
 2. Click **+ Agent** to spawn a new Codex terminal and its character. Right-click for the option to launch with `--dangerously-skip-permissions` (bypasses all tool approval prompts)
-3. Start coding with Codex — watch the character react in real time
-4. Click a character to select it, then click a seat to reassign it
-5. Click **Layout** to open the office editor and customize your space
-6. Click **Graph** to build or open the repo’s Graphify map and reuse its graph/report for parallel agent context
+3. Extension-started Codex sessions now prime `.serena/` for the workspace and start with a default session prompt that makes Graphify the primary repo memory layer and Serena the fallback layer
+4. Start coding with Codex — watch the character react in real time
+5. Click a character to select it, then click a seat to reassign it
+6. Click **Layout** to open the office editor and customize your space
+7. Click **Graph** to build or open the repo’s Graphify map and reuse its graph/report for parallel agent context
+
+The shipped default workflow is described in [docs/default-workflow.md](docs/default-workflow.md).
 
 ## Graphify Workflow
 
@@ -126,6 +130,7 @@ Serena is treated as a fallback memory layer. CodexEconPixel does not need to re
 
 If Graphify is not installed yet, install `graphifyy` in your Python environment first.
 For richer doc/paper/image extraction beyond the built-in startup code graph refresh, run `/graphify --update` inside your AI assistant.
+Extension-started Codex sessions are primed with that retrieval order automatically.
 
 For source contributors and agents, `AGENTS.md` is the Codex-default operating guide in this repo.
 

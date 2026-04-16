@@ -49,6 +49,7 @@ import {
 import type { LayoutWatcher } from './layoutPersistence.js';
 import { readLayoutFromFile, watchLayoutFile, writeLayoutToFile } from './layoutPersistence.js';
 import type { AgentState } from './types.js';
+import { prepareWorkspaceWorkflow } from './workflowBootstrap.js';
 
 export class PixelAgentsViewProvider implements vscode.WebviewViewProvider {
   nextAgentId = { current: 1 };
@@ -142,6 +143,29 @@ export class PixelAgentsViewProvider implements vscode.WebviewViewProvider {
     webviewView.webview.onDidReceiveMessage(async (message) => {
       if (message.type === 'openCodex') {
         const prevAgentIds = new Set(this.agents.keys());
+        const folders = vscode.workspace.workspaceFolders;
+        const requestedFolderPath = message.folderPath as string | undefined;
+        const launchCwd = requestedFolderPath || folders?.[0]?.uri.fsPath || os.homedir();
+        const shouldPrepareWorkflow =
+          !!requestedFolderPath || (folders !== undefined && folders.length > 0);
+        let initialPrompt: string | undefined;
+        let graphifyError: string | null = null;
+
+        if (shouldPrepareWorkflow) {
+          await vscode.window.withProgress(
+            {
+              location: vscode.ProgressLocation.Notification,
+              title: 'Preparing Graphify and Serena workflow',
+              cancellable: false,
+            },
+            async () => {
+              const workflow = await prepareWorkspaceWorkflow(launchCwd);
+              initialPrompt = workflow.codexInitialPrompt;
+              graphifyError = workflow.graphifyError;
+            },
+          );
+        }
+
         await launchNewTerminal(
           this.nextAgentId,
           this.nextTerminalIndex,
@@ -156,9 +180,24 @@ export class PixelAgentsViewProvider implements vscode.WebviewViewProvider {
           this.projectScanTimer,
           this.webview,
           this.persistAgents,
-          message.folderPath as string | undefined,
+          requestedFolderPath,
           message.bypassPermissions as boolean | undefined,
+          initialPrompt,
         );
+
+        if (shouldPrepareWorkflow) {
+          if (graphifyError) {
+            void vscode.window.showWarningMessage(
+              `Pixel Agents primed Serena for this workspace, but Graphify could not be refreshed automatically. ${graphifyError}`,
+            );
+          } else {
+            void vscode.window.setStatusBarMessage(
+              'Pixel Agents: Graphify and Serena primed for the new Codex session.',
+              5000,
+            );
+          }
+        }
+
         // Register newly created agent(s) with hook handler
         for (const [id, agent] of this.agents) {
           if (!prevAgentIds.has(id)) {

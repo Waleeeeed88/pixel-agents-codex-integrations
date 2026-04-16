@@ -18,6 +18,8 @@ That produces:
 dist-vsix/codexeconpixel.vsix
 ```
 
+The release gate also verifies the shipped Graphify + Serena workflow assets that back the default Codex launch experience.
+
 ## GitHub release flow
 
 The publish workflow runs on `release.published`.
@@ -25,7 +27,7 @@ The publish workflow runs on `release.published`.
 What it does:
 
 1. Installs root, webview, and server dependencies.
-2. Runs `npm run release:check`.
+2. Runs `npm run release:check`, including the Graphify + Serena workflow asset check.
 3. Builds `dist-vsix/codexeconpixel.vsix`.
 4. Uploads the VSIX as both a workflow artifact and a GitHub release asset.
 5. Publishes to VS Code Marketplace and Open VSX when the required secrets are present.

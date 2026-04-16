@@ -41,6 +41,7 @@ export async function launchNewTerminal(
   persistAgentsCallback: () => void,
   folderPath?: string,
   bypassPermissions?: boolean,
+  initialPrompt?: string,
 ): Promise<void> {
   const folders = vscode.workspace.workspaceFolders;
   const cwd = folderPath || folders?.[0]?.uri.fsPath || os.homedir();
@@ -52,7 +53,7 @@ export async function launchNewTerminal(
   });
   terminal.show();
 
-  const codexCmd = bypassPermissions ? 'codex --dangerously-bypass-approvals-and-sandbox' : 'codex';
+  const codexCmd = buildCodexLaunchCommand(bypassPermissions, initialPrompt);
   terminal.sendText(codexCmd);
 
   const id = nextAgentIdRef.current++;
@@ -152,6 +153,24 @@ export async function launchNewTerminal(
     }
   }, JSONL_POLL_INTERVAL_MS);
   jsonlPollTimers.set(id, pollTimer);
+}
+
+function buildCodexLaunchCommand(
+  bypassPermissions: boolean | undefined,
+  initialPrompt: string | undefined,
+): string {
+  const parts = ['codex'];
+  if (bypassPermissions) {
+    parts.push('--dangerously-bypass-approvals-and-sandbox');
+  }
+  if (initialPrompt && initialPrompt.trim().length > 0) {
+    parts.push(quoteCodexPrompt(initialPrompt.trim()));
+  }
+  return parts.join(' ');
+}
+
+function quoteCodexPrompt(prompt: string): string {
+  return `"${prompt.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
 }
 
 export function removeAgent(

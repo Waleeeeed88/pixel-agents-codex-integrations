@@ -162,6 +162,7 @@ Each test runs with an isolated `HOME` and `--user-data-dir`, so no test state l
 3. Verify everything passes locally:
    ```bash
    npm run validate                     # Type check + lint + format + tests
+   npm run workflow:check              # Graphify + Serena workflow assets
    npm run build                        # Compile extension + webview bundle
    npm run package:vsix                 # Optional: build the release artifact
    ```

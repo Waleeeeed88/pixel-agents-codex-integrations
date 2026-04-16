@@ -6,6 +6,7 @@
 
 - Rebrand the extension as `CodexEconPixel` under the `waleeeeed88` publisher while keeping upstream attribution and the original MIT license.
 - Make Codex the default runtime path and keep Graphify as the primary low-token repo memory layer for the fork.
+- Make extension-started Codex sessions bootstrap Serena and start with a Graphify-first default session prompt.
 - Add release-oriented developer workflow improvements, including a single-command setup path, a local release gate, VSIX packaging, and fork-specific release documentation.
 - Stabilize CI and release packaging around npm 10.9.2 with refreshed lockfiles for the root and webview workspaces.
 - Upload release-ready VSIX artifacts through GitHub Releases, with marketplace publishing wired behind `VSCE_PAT` and `OPEN_VSX_TOKEN`.
