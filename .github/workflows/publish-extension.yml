@@ -3,19 +3,14 @@ name: Publish Extension
 on:
   release:
     types: [published]
-  workflow_dispatch:
-    inputs:
-      dry_run:
-        description: 'Package without publishing'
-        type: boolean
-        default: true
 
 concurrency:
-  group: publish-extension
+  group: publish-extension-${{ github.event.release.tag_name }}
   cancel-in-progress: false
 
 jobs:
   publish:
+    if: github.repository == 'Waleeeeed88/pixel-agents-codex-integrations'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
@@ -23,10 +18,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Setup Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
           cache: npm
@@ -38,27 +33,16 @@ jobs:
       - name: Setup npm
         run: npm install -g npm@10.9.2
 
-      - name: Determine Publish Mode
-        id: mode
-        env:
-          EVENT_NAME: ${{ github.event_name }}
-          DRY_RUN_INPUT: ${{ github.event.inputs.dry_run || 'false' }}
-        run: |
-          if [ "$EVENT_NAME" = "workflow_dispatch" ] && [ "$DRY_RUN_INPUT" = "true" ]; then
-            echo "dry_run=true" >> "$GITHUB_OUTPUT"
-            echo "should_publish=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "dry_run=false" >> "$GITHUB_OUTPUT"
-            echo "should_publish=true" >> "$GITHUB_OUTPUT"
-          fi
-
       - name: Read Extension Metadata
         id: meta
         run: |
-          echo "name=$(node -p "require('./package.json').name")" >> "$GITHUB_OUTPUT"
-          echo "publisher=$(node -p "require('./package.json').publisher")" >> "$GITHUB_OUTPUT"
-          echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
-          echo "vsix_path=dist-vsix/$(node -p "require('./package.json').name").vsix" >> "$GITHUB_OUTPUT"
+          NAME=$(node -p "require('./package.json').name")
+          PUBLISHER=$(node -p "require('./package.json').publisher")
+          VERSION=$(node -p "require('./package.json').version")
+          echo "name=$NAME" >> "$GITHUB_OUTPUT"
+          echo "publisher=$PUBLISHER" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "vsix_path=dist-vsix/$NAME.vsix" >> "$GITHUB_OUTPUT"
 
       - name: Install Root Dependencies
         run: npm ci
@@ -75,15 +59,18 @@ jobs:
         run: npm run release:check
 
       - name: Package VSIX
-        run: |
-          mkdir -p dist-vsix
-          npm run package:vsix
+        run: npm run package:vsix
 
       - name: Upload VSIX Artifact
         uses: actions/upload-artifact@v4
         with:
           name: codexeconpixel-vsix
           path: ${{ steps.meta.outputs.vsix_path }}
+
+      - name: Upload VSIX to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ steps.meta.outputs.vsix_path }}
 
       - name: Check Publish Secrets
         id: secrets_ready
@@ -104,7 +91,7 @@ jobs:
 
       - name: Publish to VS Code Marketplace
         id: publish_vscode
-        if: ${{ steps.mode.outputs.should_publish == 'true' && steps.secrets_ready.outputs.vsce_ready == 'true' }}
+        if: steps.secrets_ready.outputs.vsce_ready == 'true'
         uses: HaaLeo/publish-vscode-extension@v2
         with:
           pat: ${{ secrets.VSCE_PAT }}
@@ -113,7 +100,7 @@ jobs:
           skipDuplicate: true
 
       - name: Publish to Open VSX
-        if: ${{ steps.mode.outputs.should_publish == 'true' && steps.secrets_ready.outputs.openvsx_ready == 'true' }}
+        if: steps.secrets_ready.outputs.openvsx_ready == 'true'
         uses: HaaLeo/publish-vscode-extension@v2
         with:
           pat: ${{ secrets.OPEN_VSX_TOKEN }}
@@ -121,18 +108,8 @@ jobs:
           extensionFile: ${{ steps.meta.outputs.vsix_path }}
           skipDuplicate: true
 
-      - name: Explain Skipped Marketplace Publish
-        if: ${{ steps.mode.outputs.dry_run == 'true' }}
-        run: echo "Dry run enabled: VSIX packaged and uploaded, marketplace publish skipped."
-
       - name: Explain Missing Publish Secrets
-        if: ${{ steps.mode.outputs.should_publish == 'true' && (steps.secrets_ready.outputs.vsce_ready != 'true' || steps.secrets_ready.outputs.openvsx_ready != 'true') }}
+        if: steps.secrets_ready.outputs.vsce_ready != 'true' || steps.secrets_ready.outputs.openvsx_ready != 'true'
         run: |
           echo "Marketplace publish skipped because one or more required secrets are missing."
           echo "Expected secrets: VSCE_PAT and OPEN_VSX_TOKEN."
-
-      - name: Upload VSIX to Release
-        if: github.event_name == 'release'
-        uses: softprops/action-gh-release@v2
-        with:
-          files: ${{ steps.meta.outputs.vsix_path }}

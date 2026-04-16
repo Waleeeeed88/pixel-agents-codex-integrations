@@ -95,6 +95,8 @@ The fork is set up to be low-friction for contributors:
 - `npm run release:check` runs the full local release gate
 - `npm run package:vsix` creates a VSIX locally in `dist-vsix/`
 
+Maintainers can use [docs/releasing.md](docs/releasing.md) for the release flow, required secrets, and the GitHub release packaging path.
+
 ### Usage
 
 1. Open the **CodexEconPixel** panel (it appears in the bottom panel area alongside your terminal)

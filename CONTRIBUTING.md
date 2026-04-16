@@ -166,6 +166,7 @@ Each test runs with an isolated `HOME` and `--user-data-dir`, so no test state l
    npm run package:vsix                 # Optional: build the release artifact
    ```
    CI runs these same checks automatically on every PR.
+   Maintainers preparing a tagged release should also review [docs/releasing.md](docs/releasing.md).
 4. Open a pull request against `main` with:
    - A **conventional commit PR title** (e.g. `feat: add zoom controls`, `fix: character freezing on terminal close`, `refactor: extract pathfinding module`). CI enforces this format — see [Conventional Commits](https://www.conventionalcommits.org/).
    - A clear description of what changed and why
