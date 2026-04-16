@@ -13,11 +13,27 @@ env:
 jobs:
   update-badges:
     runs-on: ubuntu-latest
-    if: ${{ github.repository == 'Waleeeeed88/pixel-agents-codex-integrations' && secrets.GIST_SECRET != '' && secrets.GIST_ID != '' }}
 
     steps:
+      - name: Check Badge Prerequisites
+        id: guard
+        env:
+          GIST_SECRET: ${{ secrets.GIST_SECRET }}
+          GIST_ID: ${{ secrets.GIST_ID }}
+        run: |
+          if [ "${{ github.repository }}" != "Waleeeeed88/pixel-agents-codex-integrations" ]; then
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if [ -n "$GIST_SECRET" ] && [ -n "$GIST_ID" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Fetch VS Code Marketplace stats
         id: vscode
+        if: steps.guard.outputs.ready == 'true'
         run: |
           RESPONSE=$(curl -s -X POST \
             'https://marketplace.visualstudio.com/_apis/public/gallery/extensionquery' \
@@ -38,12 +54,14 @@ jobs:
 
       - name: Fetch Open VSX stats
         id: openvsx
+        if: steps.guard.outputs.ready == 'true'
         run: |
           DOWNLOADS=$(curl -s "https://open-vsx.org/api/$OPEN_VSX_NAMESPACE/$OPEN_VSX_NAME" | jq '.downloadCount // 0')
           echo "downloads=$DOWNLOADS" >> "$GITHUB_OUTPUT"
 
       - name: Fetch GitHub Releases downloads
         id: releases
+        if: steps.guard.outputs.ready == 'true'
         run: |
           TOTAL=$(curl -s https://api.github.com/repos/${{ github.repository }}/releases \
             -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
@@ -52,6 +70,7 @@ jobs:
 
       - name: Format install count
         id: format
+        if: steps.guard.outputs.ready == 'true'
         run: |
           TOTAL=$(( ${{ steps.vscode.outputs.installs }} + ${{ steps.vscode.outputs.downloads }} + ${{ steps.openvsx.outputs.downloads }} + ${{ steps.releases.outputs.downloads }} ))
           if [ "$TOTAL" -ge 1000 ]; then
@@ -62,6 +81,7 @@ jobs:
           echo "message=$MSG" >> "$GITHUB_OUTPUT"
 
       - name: Update version badge in gist
+        if: steps.guard.outputs.ready == 'true'
         uses: schneegans/dynamic-badges-action@v1.8.0
         with:
           auth: ${{ secrets.GIST_SECRET }}
@@ -74,6 +94,7 @@ jobs:
           logoColor: white
 
       - name: Update installs badge in gist
+        if: steps.guard.outputs.ready == 'true'
         uses: schneegans/dynamic-badges-action@v1.8.0
         with:
           auth: ${{ secrets.GIST_SECRET }}
@@ -82,3 +103,7 @@ jobs:
           label: marketplaces
           message: ${{ steps.format.outputs.message }}
           color: '0183ff'
+
+      - name: Explain Skipped Badge Update
+        if: steps.guard.outputs.ready != 'true'
+        run: echo "Skipping badge update because the repo is not the primary fork or gist secrets are missing."

@@ -71,9 +71,26 @@ jobs:
           name: codexeconpixel-vsix
           path: ${{ steps.meta.outputs.vsix_path }}
 
+      - name: Check Publish Secrets
+        id: secrets_ready
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+          OPEN_VSX_TOKEN: ${{ secrets.OPEN_VSX_TOKEN }}
+        run: |
+          if [ -n "$VSCE_PAT" ]; then
+            echo "vsce_ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "vsce_ready=false" >> "$GITHUB_OUTPUT"
+          fi
+          if [ -n "$OPEN_VSX_TOKEN" ]; then
+            echo "openvsx_ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "openvsx_ready=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Publish to VS Code Marketplace
         id: publish_vscode
-        if: ${{ (github.event_name == 'release' || !inputs.dry_run) && secrets.VSCE_PAT != '' }}
+        if: ${{ (github.event_name == 'release' || !inputs.dry_run) && steps.secrets_ready.outputs.vsce_ready == 'true' }}
         uses: HaaLeo/publish-vscode-extension@v2
         with:
           pat: ${{ secrets.VSCE_PAT }}
@@ -82,7 +99,7 @@ jobs:
           skipDuplicate: true
 
       - name: Publish to Open VSX
-        if: ${{ (github.event_name == 'release' || !inputs.dry_run) && secrets.OPEN_VSX_TOKEN != '' }}
+        if: ${{ (github.event_name == 'release' || !inputs.dry_run) && steps.secrets_ready.outputs.openvsx_ready == 'true' }}
         uses: HaaLeo/publish-vscode-extension@v2
         with:
           pat: ${{ secrets.OPEN_VSX_TOKEN }}
@@ -95,7 +112,7 @@ jobs:
         run: echo "Dry run enabled: VSIX packaged and uploaded, marketplace publish skipped."
 
       - name: Explain Missing Publish Secrets
-        if: ${{ (github.event_name == 'release' || !inputs.dry_run) && (secrets.VSCE_PAT == '' || secrets.OPEN_VSX_TOKEN == '') }}
+        if: ${{ (github.event_name == 'release' || !inputs.dry_run) && (steps.secrets_ready.outputs.vsce_ready != 'true' || steps.secrets_ready.outputs.openvsx_ready != 'true') }}
         run: |
           echo "Marketplace publish skipped because one or more required secrets are missing."
           echo "Expected secrets: VSCE_PAT and OPEN_VSX_TOKEN."
