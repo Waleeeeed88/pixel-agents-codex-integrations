@@ -38,6 +38,20 @@ jobs:
       - name: Setup npm
         run: npm install -g npm@10.9.2
 
+      - name: Determine Publish Mode
+        id: mode
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          DRY_RUN_INPUT: ${{ github.event.inputs.dry_run || 'false' }}
+        run: |
+          if [ "$EVENT_NAME" = "workflow_dispatch" ] && [ "$DRY_RUN_INPUT" = "true" ]; then
+            echo "dry_run=true" >> "$GITHUB_OUTPUT"
+            echo "should_publish=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "dry_run=false" >> "$GITHUB_OUTPUT"
+            echo "should_publish=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Read Extension Metadata
         id: meta
         run: |
@@ -90,7 +104,7 @@ jobs:
 
       - name: Publish to VS Code Marketplace
         id: publish_vscode
-        if: ${{ (github.event_name == 'release' || !inputs.dry_run) && steps.secrets_ready.outputs.vsce_ready == 'true' }}
+        if: ${{ steps.mode.outputs.should_publish == 'true' && steps.secrets_ready.outputs.vsce_ready == 'true' }}
         uses: HaaLeo/publish-vscode-extension@v2
         with:
           pat: ${{ secrets.VSCE_PAT }}
@@ -99,7 +113,7 @@ jobs:
           skipDuplicate: true
 
       - name: Publish to Open VSX
-        if: ${{ (github.event_name == 'release' || !inputs.dry_run) && steps.secrets_ready.outputs.openvsx_ready == 'true' }}
+        if: ${{ steps.mode.outputs.should_publish == 'true' && steps.secrets_ready.outputs.openvsx_ready == 'true' }}
         uses: HaaLeo/publish-vscode-extension@v2
         with:
           pat: ${{ secrets.OPEN_VSX_TOKEN }}
@@ -108,11 +122,11 @@ jobs:
           skipDuplicate: true
 
       - name: Explain Skipped Marketplace Publish
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
+        if: ${{ steps.mode.outputs.dry_run == 'true' }}
         run: echo "Dry run enabled: VSIX packaged and uploaded, marketplace publish skipped."
 
       - name: Explain Missing Publish Secrets
-        if: ${{ (github.event_name == 'release' || !inputs.dry_run) && (steps.secrets_ready.outputs.vsce_ready != 'true' || steps.secrets_ready.outputs.openvsx_ready != 'true') }}
+        if: ${{ steps.mode.outputs.should_publish == 'true' && (steps.secrets_ready.outputs.vsce_ready != 'true' || steps.secrets_ready.outputs.openvsx_ready != 'true') }}
         run: |
           echo "Marketplace publish skipped because one or more required secrets are missing."
           echo "Expected secrets: VSCE_PAT and OPEN_VSX_TOKEN."
