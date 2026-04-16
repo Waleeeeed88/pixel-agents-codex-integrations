@@ -1,7 +1,7 @@
 {
   "name": "pixel-agents",
   "displayName": "Pixel Agents",
-  "description": "Pixel art office where your Claude Code agents come to life as animated characters",
+  "description": "Pixel art office where your Codex agents come to life as animated characters",
   "version": "1.3.0",
   "publisher": "pablodelucca",
   "repository": {
@@ -27,6 +27,14 @@
       {
         "command": "pixel-agents.exportDefaultLayout",
         "title": "Pixel Agents: Export Layout as Default"
+      },
+      {
+        "command": "pixel-agents.openGraphify",
+        "title": "Pixel Agents: Open Graphify Map"
+      },
+      {
+        "command": "pixel-agents.refreshGraphify",
+        "title": "Pixel Agents: Refresh Graphify Map"
       }
     ],
     "viewsContainers": {

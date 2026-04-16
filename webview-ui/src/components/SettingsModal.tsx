@@ -10,6 +10,8 @@ import { Modal } from './ui/Modal.js';
 interface SettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onOpenGraphify: () => void;
+  onRefreshGraphify: () => void;
   isDebugMode: boolean;
   onToggleDebugMode: () => void;
   alwaysShowOverlay: boolean;
@@ -17,13 +19,13 @@ interface SettingsModalProps {
   externalAssetDirectories: string[];
   watchAllSessions: boolean;
   onToggleWatchAllSessions: () => void;
-  hooksEnabled: boolean;
-  onToggleHooksEnabled: () => void;
 }
 
 export function SettingsModal({
   isOpen,
   onClose,
+  onOpenGraphify,
+  onRefreshGraphify,
   isDebugMode,
   onToggleDebugMode,
   alwaysShowOverlay,
@@ -31,13 +33,27 @@ export function SettingsModal({
   externalAssetDirectories,
   watchAllSessions,
   onToggleWatchAllSessions,
-  hooksEnabled,
-  onToggleHooksEnabled,
 }: SettingsModalProps) {
   const [soundLocal, setSoundLocal] = useState(isSoundEnabled);
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Settings">
+      <MenuItem
+        onClick={() => {
+          onOpenGraphify();
+          onClose();
+        }}
+      >
+        Open Graphify Map
+      </MenuItem>
+      <MenuItem
+        onClick={() => {
+          onRefreshGraphify();
+          onClose();
+        }}
+      >
+        Refresh Graphify Map
+      </MenuItem>
       <MenuItem
         onClick={() => {
           vscode.postMessage({ type: 'openSessionsFolder' });
@@ -102,11 +118,6 @@ export function SettingsModal({
         label="Watch All Sessions"
         checked={watchAllSessions}
         onChange={onToggleWatchAllSessions}
-      />
-      <Checkbox
-        label="Instant Detection (Hooks)"
-        checked={hooksEnabled}
-        onChange={onToggleHooksEnabled}
       />
       <Checkbox
         label="Always Show Labels"

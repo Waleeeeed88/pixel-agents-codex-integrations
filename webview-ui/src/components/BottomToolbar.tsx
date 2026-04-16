@@ -7,7 +7,8 @@ import { Dropdown, DropdownItem } from './ui/Dropdown.js';
 
 interface BottomToolbarProps {
   isEditMode: boolean;
-  onOpenClaude: () => void;
+  onOpenCodex: () => void;
+  onOpenGraphify: () => void;
   onToggleEditMode: () => void;
   isSettingsOpen: boolean;
   onToggleSettings: () => void;
@@ -16,7 +17,8 @@ interface BottomToolbarProps {
 
 export function BottomToolbar({
   isEditMode,
-  onOpenClaude,
+  onOpenCodex,
+  onOpenGraphify,
   onToggleEditMode,
   isSettingsOpen,
   onToggleSettings,
@@ -47,7 +49,7 @@ export function BottomToolbar({
     if (hasMultipleFolders) {
       setIsFolderPickerOpen((v) => !v);
     } else {
-      onOpenClaude();
+      onOpenCodex();
     }
   };
 
@@ -67,7 +69,7 @@ export function BottomToolbar({
     setIsFolderPickerOpen(false);
     const bypassPermissions = pendingBypassRef.current;
     pendingBypassRef.current = false;
-    vscode.postMessage({ type: 'openClaude', folderPath: folder.path, bypassPermissions });
+    vscode.postMessage({ type: 'openCodex', folderPath: folder.path, bypassPermissions });
   };
 
   const handleBypassSelect = (bypassPermissions: boolean) => {
@@ -76,7 +78,7 @@ export function BottomToolbar({
       pendingBypassRef.current = bypassPermissions;
       setIsFolderPickerOpen(true);
     } else {
-      vscode.postMessage({ type: 'openClaude', bypassPermissions });
+      vscode.postMessage({ type: 'openCodex', bypassPermissions });
     }
   };
 
@@ -116,6 +118,9 @@ export function BottomToolbar({
           ))}
         </Dropdown>
       </div>
+      <Button variant="default" onClick={onOpenGraphify} title="Open Graphify map">
+        Graph
+      </Button>
       <Button
         variant={isEditMode ? 'active' : 'default'}
         onClick={onToggleEditMode}

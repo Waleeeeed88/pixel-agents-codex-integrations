@@ -17,7 +17,18 @@ export const GLOBAL_KEY_HOOKS_INFO_SHOWN = 'pixel-agents.hooksInfoShown';
 export const VIEW_ID = 'pixel-agents.panelView';
 export const COMMAND_SHOW_PANEL = 'pixel-agents.showPanel';
 export const COMMAND_EXPORT_DEFAULT_LAYOUT = 'pixel-agents.exportDefaultLayout';
+export const COMMAND_OPEN_GRAPHIFY = 'pixel-agents.openGraphify';
+export const COMMAND_REFRESH_GRAPHIFY = 'pixel-agents.refreshGraphify';
 export const WORKSPACE_KEY_AGENTS = 'pixel-agents.agents';
 export const WORKSPACE_KEY_AGENT_SEATS = 'pixel-agents.agentSeats';
 export const WORKSPACE_KEY_LAYOUT = 'pixel-agents.layout';
-export const TERMINAL_NAME_PREFIX = 'Claude Code';
+export const TERMINAL_NAME_PREFIX = 'Codex';
+
+// —— Graphify Auto-Refresh ——————————————————————————————————————————————
+export const GRAPHIFY_SESSION_MONITOR_INTERVAL_MS = 4000;
+export const GRAPHIFY_AUTO_REFRESH_IDLE_MS = 90_000;
+export const GRAPHIFY_AUTO_REFRESH_MIN_INTERVAL_MS = 180_000;
+export const GRAPHIFY_AUTO_REFRESH_MIN_LINES = 24;
+export const GRAPHIFY_AUTO_REFRESH_MIN_TOKENS = 3500;
+export const GRAPHIFY_GOOD_SESSION_LINES = 60;
+export const GRAPHIFY_GOOD_SESSION_TOKENS = 9000;

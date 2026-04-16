@@ -10,6 +10,8 @@ import {
   TOOL_DONE_DELAY_MS,
 } from '../server/src/constants.js';
 import type { HookProvider } from '../server/src/provider.js';
+import { isCodexRecord } from './codex.js';
+import { processCodexTranscriptRecord } from './codexTranscriptParser.js';
 import {
   cancelPermissionTimer,
   cancelWaitingTimer,
@@ -100,6 +102,18 @@ export function processTranscriptLine(
   agent.linesProcessed++;
   try {
     const record = JSON.parse(line);
+
+    if (agent.providerId === 'codex' || isCodexRecord(record)) {
+      processCodexTranscriptRecord(
+        agentId,
+        record as Record<string, unknown>,
+        agents,
+        waitingTimers,
+        permissionTimers,
+        webview,
+      );
+      return;
+    }
 
     // -- Agent Teams: extract team metadata via the active provider --
     // The provider reads its CLI's own field names (Claude: record.teamName + record.agentName).

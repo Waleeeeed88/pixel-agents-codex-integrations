@@ -26,7 +26,7 @@
 
 Pixel Agents turns multi-agent AI systems into something you can actually see and manage. Each agent becomes a character in a pixel art office. They walk around, sit at their desk, and visually reflect what they are doing — typing when writing code, reading when searching files, waiting when it needs your attention.
 
-Right now it works as a VS Code extension with Claude Code. The vision though, is a fully agent-agnostic, platform-agnostic interface for orchestrating any AI agents, deployable anywhere.
+Right now the default runtime is Codex inside VS Code, with legacy Claude compatibility still present in the codebase. The long-term vision is a fully agent-agnostic, platform-agnostic interface for orchestrating any AI agents, deployable anywhere.
 
 This is the source code for the free Pixel Agents extension for VS Code — install from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=pablodelucca.pixel-agents) or [Open VSX](https://open-vsx.org/extension/pablodelucca/pixel-agents) with the full furniture catalog included.
 
@@ -34,12 +34,13 @@ This is the source code for the free Pixel Agents extension for VS Code — inst
 
 ## Features
 
-- **One agent, one character** — every Claude Code terminal gets its own animated character
+- **One agent, one character** — every Codex terminal gets its own animated character
 - **Live activity tracking** — characters animate based on what the agent is actually doing (writing, reading, running commands)
 - **Office layout editor** — design your office with floors, walls, and furniture using a built-in editor
 - **Speech bubbles** — visual indicators when an agent is waiting for input or needs permission
 - **Sound notifications** — optional chime when an agent finishes its turn
 - **Sub-agent visualization** — Task tool sub-agents spawn as separate characters linked to their parent
+- **Graphify workspace map** — build and open a persistent knowledge-graph view of the repo for lower-token parallel work
 - **Persistent layouts** — your office design is saved and shared across VS Code windows
 - **External asset directories** — load custom or third-party furniture packs from any folder on your machine
 - **Diverse characters** — 6 diverse characters. These are based on the amazing work of [JIK-A-4, Metro City](https://jik-a-4.itch.io/metrocity-free-topdown-character-pack).
@@ -51,7 +52,7 @@ This is the source code for the free Pixel Agents extension for VS Code — inst
 ## Requirements
 
 - VS Code 1.105.0 or later
-- [Claude Code CLI](https://docs.anthropic.com/en/docs/claude-code) installed and configured
+- [Codex CLI](https://platform.openai.com/docs/codex) installed and configured
 - **Platform**: Windows, Linux, and macOS are supported
 
 ## Getting Started
@@ -73,10 +74,34 @@ Then press **F5** in VS Code to launch the Extension Development Host.
 ### Usage
 
 1. Open the **Pixel Agents** panel (it appears in the bottom panel area alongside your terminal)
-2. Click **+ Agent** to spawn a new Claude Code terminal and its character. Right-click for the option to launch with `--dangerously-skip-permissions` (bypasses all tool approval prompts)
+2. Click **+ Agent** to spawn a new Codex terminal and its character. Right-click for the option to launch with `--dangerously-skip-permissions` (bypasses all tool approval prompts)
 3. Start coding with Claude — watch the character react in real time
 4. Click a character to select it, then click a seat to reassign it
 5. Click **Layout** to open the office editor and customize your space
+6. Click **Graph** to build or open the repo’s Graphify map and reuse its graph/report for parallel agent context
+
+## Graphify Workflow
+
+Pixel Agents can open a Graphify workspace map beside the main panel. On extension startup, Pixel Agents performs a silent local Graphify code refresh for each open workspace and rebuilds the native graph HTML plus a compact agent knowledge base. After that, the extension keeps watching agent activity and quietly refreshes the graph again after meaningful coding sessions or quiet intervals, with the graph panel popping open when a strong session completes. The panel looks for `graphify-out/graph.html`, `graphify-out/graph.json`, `graphify-out/GRAPH_REPORT.md`, and `graphify-out/AGENT_KNOWLEDGE_BASE.md` in the workspace root. If they are missing or stale, **Graph** triggers a refresh and then opens a dedicated preview panel with the interactive visualization.
+
+Use this to keep a persistent subsystem map around for parallel agents:
+
+- `graphify-out/graph.json` — reusable graph context for tools and agents
+- `graphify-out/GRAPH_REPORT.md` — human-readable report with clusters and cross-links
+- `graphify-out/graph.html` — interactive visualization
+- `graphify-out/AGENT_KNOWLEDGE_BASE.md` — compact repomix-like briefing for Codex agents
+
+The knowledge base also indexes local Serena project data when present:
+
+- `.serena/project.yml` — project configuration
+- `.serena/memories/*` — persistent project memories
+
+Serena is treated as a fallback memory layer. Pixel Agents does not need to reopen it every time; the default retrieval path is the Graphify knowledge base, report, and graph first.
+
+If Graphify is not installed yet, install `graphifyy` in your Python environment first.
+For richer doc/paper/image extraction beyond the built-in startup code graph refresh, run `/graphify --update` inside your AI assistant.
+
+For source contributors and agents, `AGENTS.md` is the Codex-default operating guide in this repo.
 
 ## Layout Editor
 
@@ -140,11 +165,10 @@ The long-term vision is an interface where managing AI agents feels like playing
 For this to work, the architecture needs to be modular at every level:
 
 - **Platform-agnostic**: VS Code extension today, Electron app, web app, or any other host environment tomorrow.
-- **Agent-agnostic**: Claude Code today, but built to support Codex, OpenCode, Gemini, Cursor, Copilot, and others through composable adapters.
+- **Agent-agnostic**: Codex by default today, while the architecture is being shaped to support Claude, OpenCode, Gemini, Cursor, Copilot, and others through composable adapters.
 - **Theme-agnostic**: community-created assets, skins, and themes from any contributor.
 
 We're actively working on the core module and adapter architecture that makes this possible. If you're interested to talk about this further, please visit our [Discussions Section](https://github.com/pablodelucca/pixel-agents/discussions).
-
 
 ## Community & Contributing
 

@@ -1,6 +1,20 @@
 # Pixel Agents — Compressed Reference
 
+`AGENTS.md` is the authoritative Codex-default guide for this repository.
+Use this file when you specifically need the Claude compatibility and hook details that still exist in the codebase.
+
 VS Code extension with embedded React webview: pixel art office where AI agents (Claude Code terminals) are animated characters.
+
+## Graphify-First Context
+
+Use the persistent graph and agent knowledge base in `graphify-out/` before doing wide repo searches, especially for parallel work:
+
+- Read `graphify-out/AGENT_KNOWLEDGE_BASE.md` first, then `graphify-out/GRAPH_REPORT.md`, then `graphify-out/graph.json`.
+- The extension refreshes the local code graph on startup and after meaningful coding sessions or quiet intervals. If the knowledge base says deep semantic refresh is needed after docs/images changes, run `/graphify --update`.
+- Split multi-agent work by graph communities or subsystem boundaries so agents do not re-read the same files and burn duplicate tokens.
+- In Codex specifically, prefer `multi_tool_use.parallel` for independent reads and `spawn_agent` for bounded sidecar tasks only after reading the KB/graph.
+- If `.serena/project.yml` or `.serena/memories/*` exist, use them only as a fallback memory layer when the graph/KB is not enough.
+- Open `graphify-out/graph.html` when you need the visual map.
 
 ## Architecture
 

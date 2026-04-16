@@ -14,9 +14,12 @@ export interface AgentState {
   activeToolIds: Set<string>;
   activeToolStatuses: Map<string, string>;
   activeToolNames: Map<string, string>;
+  codexToolArgumentsById: Map<string, Record<string, unknown>>;
   activeSubagentToolIds: Map<string, Set<string>>; // parentToolId → active sub-tool IDs
   activeSubagentToolNames: Map<string, Map<string, string>>; // parentToolId → (subToolId → toolName)
   backgroundAgentToolIds: Set<string>; // tool IDs for run_in_background Agent calls (stay alive until queue-operation)
+  codexSpawnedAgentsByToolId: Map<string, { agentId: string; nickname?: string }>;
+  codexSpawnedToolIdByAgentId: Map<string, string>;
   isWaiting: boolean;
   permissionSent: boolean;
   hadToolsInTurn: boolean;
@@ -70,6 +73,7 @@ export interface PersistedAgent {
   projectDir: string;
   /** Workspace folder name (only set for multi-root workspaces) */
   folderName?: string;
+  providerId?: string;
 
   // -- Agent Teams --
   teamName?: string;

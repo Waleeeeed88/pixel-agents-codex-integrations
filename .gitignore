@@ -32,6 +32,7 @@ playwright-report/
 # Project-specific
 .claude/
 /sprites-export
+/graphify-out/
 
 # Local notes (not for commit)
 /notes/

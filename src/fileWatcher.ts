@@ -38,6 +38,12 @@ import {
 } from '../server/src/constants.js';
 import type { TeamProvider } from '../server/src/teamProvider.js';
 import { removeAgent } from './agentManager.js';
+import {
+  getFolderNameFromCwd,
+  listActiveCodexSessions,
+  normalizePath,
+  readCodexSessionMeta,
+} from './codex.js';
 import { TERMINAL_NAME_PREFIX } from './constants.js';
 import { cancelPermissionTimer, cancelWaitingTimer, clearAgentActivity } from './timerManager.js';
 import { processTranscriptLine } from './transcriptParser.js';
@@ -220,6 +226,10 @@ export function readNewLines(
 
 // Track all project directories to scan (supports multi-root workspaces)
 const trackedProjectDirs = new Set<string>();
+
+export function trackProjectDir(projectDir: string): void {
+  trackedProjectDirs.add(projectDir);
+}
 
 /** Check if a project dir is tracked by the workspace scanner. */
 export function isTrackedProjectDir(dir: string): boolean {
@@ -472,6 +482,7 @@ function adoptTerminalForFile(
 ): void {
   const id = nextAgentIdRef.current++;
   const sessionId = path.basename(jsonlFile, '.jsonl');
+  const providerId = inferProviderIdFromTranscript(jsonlFile, projectDir);
   // Skip to end of file -- adopted terminals show live activity only, not replay history
   let fileOffset = 0;
   try {
@@ -492,9 +503,12 @@ function adoptTerminalForFile(
     activeToolIds: new Set(),
     activeToolStatuses: new Map(),
     activeToolNames: new Map(),
+    codexToolArgumentsById: new Map(),
     activeSubagentToolIds: new Map(),
     activeSubagentToolNames: new Map(),
     backgroundAgentToolIds: new Set(),
+    codexSpawnedAgentsByToolId: new Map(),
+    codexSpawnedToolIdByAgentId: new Map(),
     isWaiting: false,
     permissionSent: false,
     hadToolsInTurn: false,
@@ -502,6 +516,7 @@ function adoptTerminalForFile(
     linesProcessed: 0,
     seenUnknownRecordTypes: new Set(),
     hookDelivered: false,
+    providerId,
     inputTokens: 0,
     outputTokens: 0,
   };
@@ -673,9 +688,12 @@ export function scanForTeammateFiles(
       activeToolIds: new Set(),
       activeToolStatuses: new Map(),
       activeToolNames: new Map(),
+      codexToolArgumentsById: new Map(),
       activeSubagentToolIds: new Map(),
       activeSubagentToolNames: new Map(),
       backgroundAgentToolIds: new Set(),
+      codexSpawnedAgentsByToolId: new Map(),
+      codexSpawnedToolIdByAgentId: new Map(),
       isWaiting: false,
       permissionSent: false,
       hadToolsInTurn: false,
@@ -888,9 +906,12 @@ export function adoptExternalSessionFromHook(
       activeToolIds: new Set(),
       activeToolStatuses: new Map(),
       activeToolNames: new Map(),
+      codexToolArgumentsById: new Map(),
       activeSubagentToolIds: new Map(),
       activeSubagentToolNames: new Map(),
       backgroundAgentToolIds: new Set(),
+      codexSpawnedAgentsByToolId: new Map(),
+      codexSpawnedToolIdByAgentId: new Map(),
       isWaiting: false,
       permissionSent: false,
       hadToolsInTurn: false,
@@ -927,8 +948,10 @@ function adoptExternalSession(
   webview: vscode.Webview | undefined,
   persistAgents: () => void,
   folderName?: string,
+  providerId?: string,
 ): void {
   const id = nextAgentIdRef.current++;
+  const inferredProviderId = providerId ?? inferProviderIdFromTranscript(jsonlFile, projectDir);
   // Skip to end of file -- only show live activity going forward, not replay history
   let fileOffset = 0;
   try {
@@ -949,9 +972,12 @@ function adoptExternalSession(
     activeToolIds: new Set(),
     activeToolStatuses: new Map(),
     activeToolNames: new Map(),
+    codexToolArgumentsById: new Map(),
     activeSubagentToolIds: new Map(),
     activeSubagentToolNames: new Map(),
     backgroundAgentToolIds: new Set(),
+    codexSpawnedAgentsByToolId: new Map(),
+    codexSpawnedToolIdByAgentId: new Map(),
     isWaiting: false,
     permissionSent: false,
     hadToolsInTurn: false,
@@ -960,6 +986,7 @@ function adoptExternalSession(
     linesProcessed: 0,
     seenUnknownRecordTypes: new Set(),
     folderName,
+    providerId: inferredProviderId,
     inputTokens: 0,
     outputTokens: 0,
   };
@@ -1001,48 +1028,84 @@ export function startExternalSessionScanning(
   webview: vscode.Webview | undefined,
   persistAgents: () => void,
   watchAllSessionsRef?: { current: boolean },
-  hooksEnabledRef?: { current: boolean },
+  _hooksEnabledRef?: { current: boolean },
 ): ReturnType<typeof setInterval> {
   return setInterval(() => {
-    // When hooks are active, SessionStart handles workspace session detection.
-    // Only skip workspace scanning; global scanning (Watch All) still needed
-    // because hooks can't detect already-running sessions from other projects.
-    if (!hooksEnabledRef?.current) {
-      // Scan all tracked project dirs (heuristic fallback)
-      for (const dir of trackedProjectDirs) {
-        scanExternalDir(
-          dir,
-          knownJsonlFiles,
-          nextAgentIdRef,
-          agents,
-          fileWatchers,
-          pollingTimers,
-          waitingTimers,
-          permissionTimers,
-          webview,
-          persistAgents,
-        );
-      }
-    }
-    // If "Watch All Sessions" is ON, also scan all global project dirs
-    if (watchAllSessionsRef?.current) {
-      scanGlobalProjectDirs(
-        knownJsonlFiles,
-        nextAgentIdRef,
-        agents,
-        fileWatchers,
-        pollingTimers,
-        waitingTimers,
-        permissionTimers,
-        webview,
-        persistAgents,
-      );
-    }
+    scanCodexSessions(
+      knownJsonlFiles,
+      nextAgentIdRef,
+      agents,
+      fileWatchers,
+      pollingTimers,
+      waitingTimers,
+      permissionTimers,
+      webview,
+      persistAgents,
+      watchAllSessionsRef?.current ?? false,
+    );
   }, EXTERNAL_SCAN_INTERVAL_MS);
 }
 
+function scanCodexSessions(
+  knownJsonlFiles: Set<string>,
+  nextAgentIdRef: { current: number },
+  agents: Map<number, AgentState>,
+  fileWatchers: Map<number, fs.FSWatcher>,
+  pollingTimers: Map<number, ReturnType<typeof setInterval>>,
+  waitingTimers: Map<number, ReturnType<typeof setTimeout>>,
+  permissionTimers: Map<number, ReturnType<typeof setTimeout>>,
+  webview: vscode.Webview | undefined,
+  persistAgents: () => void,
+  watchAllSessions: boolean,
+): void {
+  const trackedFiles = new Set<string>();
+  for (const file of knownJsonlFiles) {
+    trackedFiles.add(normalizePath(file));
+  }
+  for (const agent of agents.values()) {
+    if (agent.jsonlFile) {
+      trackedFiles.add(normalizePath(agent.jsonlFile));
+    }
+  }
+
+  const workspaceDirs = [...trackedProjectDirs];
+  const sessions = listActiveCodexSessions(trackedFiles, workspaceDirs, watchAllSessions);
+  for (const session of sessions) {
+    const hasPendingInternalAgent = [...agents.values()].some(
+      (agent) =>
+        !agent.isExternal &&
+        agent.providerId === 'codex' &&
+        !agent.jsonlFile &&
+        normalizePath(agent.projectDir) === normalizePath(session.cwd),
+    );
+    if (hasPendingInternalAgent) {
+      continue;
+    }
+
+    if (dismissedJsonlFiles.has(session.filePath) || clearDismissedFiles.has(session.filePath)) {
+      continue;
+    }
+
+    knownJsonlFiles.add(session.filePath);
+    adoptExternalSession(
+      session.filePath,
+      session.cwd,
+      nextAgentIdRef,
+      agents,
+      fileWatchers,
+      pollingTimers,
+      waitingTimers,
+      permissionTimers,
+      webview,
+      persistAgents,
+      getFolderNameFromCwd(session.cwd),
+      'codex',
+    );
+  }
+}
+
 /** Scan a single project dir for external sessions. */
-function scanExternalDir(
+export function scanExternalDir(
   projectDir: string,
   knownJsonlFiles: Set<string>,
   nextAgentIdRef: { current: number },
@@ -1180,8 +1243,15 @@ function folderNameFromProjectDir(dirName: string): string {
   return parts[parts.length - 1] || dirName;
 }
 
+function inferProviderIdFromTranscript(jsonlFile: string, projectDir: string): string {
+  if (normalizePath(jsonlFile).includes('/.codex/sessions/')) return 'codex';
+  const meta = readCodexSessionMeta(jsonlFile);
+  if (meta && normalizePath(meta.cwd) === normalizePath(projectDir)) return 'codex';
+  return 'claude';
+}
+
 /** Scan ALL ~/.claude/projects/ directories for active sessions (global discovery). */
-function scanGlobalProjectDirs(
+export function scanGlobalProjectDirs(
   knownJsonlFiles: Set<string>,
   nextAgentIdRef: { current: number },
   agents: Map<number, AgentState>,
