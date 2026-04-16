@@ -24,6 +24,9 @@
 
 <br/>
 
+> This repository is a personal fork of [pablodelucca/pixel-agents](https://github.com/pablodelucca/pixel-agents).
+> It keeps the original MIT license and builds on the upstream project with a Codex-first workflow, Graphify repo memory, and fork-specific integrations.
+
 Pixel Agents turns multi-agent AI systems into something you can actually see and manage. Each agent becomes a character in a pixel art office. They walk around, sit at their desk, and visually reflect what they are doing — typing when writing code, reading when searching files, waiting when it needs your attention.
 
 Right now the default runtime is Codex inside VS Code, with legacy Claude compatibility still present in the codebase. The long-term vision is a fully agent-agnostic, platform-agnostic interface for orchestrating any AI agents, deployable anywhere.
@@ -31,6 +34,19 @@ Right now the default runtime is Codex inside VS Code, with legacy Claude compat
 This is the source code for the free Pixel Agents extension for VS Code — install from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=pablodelucca.pixel-agents) or [Open VSX](https://open-vsx.org/extension/pablodelucca/pixel-agents) with the full furniture catalog included.
 
 ![Pixel Agents screenshot](webview-ui/public/Screenshot.jpg)
+
+## This Fork
+
+- Original project: [pablodelucca/pixel-agents](https://github.com/pablodelucca/pixel-agents)
+- Fork repository: [Waleeeeed88/pixel-agents-codex-integrations](https://github.com/Waleeeeed88/pixel-agents-codex-integrations)
+- Compare this fork against upstream: [main...Waleeeeed88:main](https://github.com/pablodelucca/pixel-agents/compare/main...Waleeeeed88:pixel-agents-codex-integrations:main)
+
+This fork is where the Codex-first and Graphify-oriented work lives. The main changes in this fork are:
+
+- Codex as the default agent runtime instead of Claude-first launch behavior
+- Graphify as the primary repo memory layer, with Serena treated as fallback context
+- Graph panel, graph refresh flow, and Codex transcript/session support across the extension
+- Fork-specific integration work and presentation intended to make this repo easier to demo as your own implementation
 
 ## Features
 
@@ -62,8 +78,8 @@ If you just want to use Pixel Agents, the easiest way is to download the [VS Cod
 ### Install from source
 
 ```bash
-git clone https://github.com/pablodelucca/pixel-agents.git
-cd pixel-agents
+git clone https://github.com/Waleeeeed88/pixel-agents-codex-integrations.git
+cd pixel-agents-codex-integrations
 npm install
 cd webview-ui && npm install && cd ..
 npm run build
